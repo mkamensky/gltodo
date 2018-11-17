@@ -1,0 +1,70 @@
+#!ruby
+
+require 'optparse'
+
+@script = File.basename($0)
+@rcfile = ".#{@script}"
+
+begin
+  binding.eval(File.read(@rcfile), @rcfile)
+rescue Errno::ENOENT => e
+end
+
+OptParse.new do |opts|
+  opts.banner = <<EOF
+Usage: #{@script} [options] [<action> <args>]
+
+List issues on gitlab. <action> can be 'list' (default), 'add', or 'done'
+
+EOF
+
+  opts.on('-h', '--help', 'Prints this help') do
+    puts opts
+    exit
+  end
+
+  opts.on('-p', '--project STRING', 'Project to use (id or name)') do |p|
+    @project = p
+  end
+
+  opts.on('-a', '--assignee STRING', 'Assignee id') do |a|
+    @assignee = a
+  end
+
+  opts.on('-l', '--labels STRING', 'Labels') do |l|
+    @labels = l
+  end
+
+end.parse!
+
+action = ARGV.shift || 'list'
+
+unless (@project)
+  @project = File.basename(Dir.pwd)
+end
+
+require 'gitlab'
+require 'colorize'
+
+case action[0]
+when 'l'
+  issues = Gitlab.issues(@project)
+  issues.sort_by(&:upvotes).each do |is|
+    puts "#{is.id}. #{is.title} (#{is.assignee.name})".colorize(is.state == 'closed' ? :blue : :red)
+  end
+when 'a'
+  is = Gitlab.create_issue(@project, ARGV.shift, assignee_id: @assignee,
+                      labels: @labels, description: ARGF.read)
+  puts "#{is.id}. #{is.title}".colorize(is.state == 'closed' ? :blue : :red)
+when 'd'
+  is = Gitlab.close_issue(@project, ARGV.shift)
+  puts "#{is.id}. #{is.title}".colorize(is.state == 'closed' ? :blue : :red)
+when 'u'
+  users = Gitlab.users
+  users.sort_by(&:id).each do |user|
+    puts "#{user.id}. #{user.name} (#{user.username})"
+  end
+end
+
+
+
