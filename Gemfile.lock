@@ -2,7 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     colorize (0.8.1)
-    gitlab (4.7.0)
+    gitlab (4.8.0)
       httparty (>= 0.14.0)
       terminal-table (>= 1.5.1)
     httparty (0.16.3)
@@ -14,7 +14,7 @@ GEM
     multi_xml (0.6.0)
     terminal-table (1.8.0)
       unicode-display_width (~> 1.1, >= 1.1.1)
-    unicode-display_width (1.4.0)
+    unicode-display_width (1.4.1)
 
 PLATFORMS
   ruby
