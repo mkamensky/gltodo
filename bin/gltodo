@@ -46,19 +46,26 @@ end
 require 'gitlab'
 require 'colorize'
 
+def list
+  issues = Gitlab.issues(@project)
+  issues.sort_by(&:id).each do |is|
+    puts "#{is.id}. #{is.title} (#{is.assignee.name})".colorize(
+      is.state == 'closed' ? :blue : :red)
+  end
+end
+
 case action[0]
 when 'l'
-  issues = Gitlab.issues(@project)
-  issues.sort_by(&:upvotes).each do |is|
-    puts "#{is.id}. #{is.title} (#{is.assignee.name})".colorize(is.state == 'closed' ? :blue : :red)
-  end
+  list
 when 'a'
   is = Gitlab.create_issue(@project, ARGV.shift, assignee_id: @assignee,
                       labels: @labels, description: ARGF.read)
-  puts "#{is.id}. #{is.title}".colorize(is.state == 'closed' ? :blue : :red)
+  puts "#{is.id}. #{is.title}".colorize(:green)
+  list
 when 'd'
   is = Gitlab.close_issue(@project, ARGV.shift)
-  puts "#{is.id}. #{is.title}".colorize(is.state == 'closed' ? :blue : :red)
+  puts "#{is.id}. #{is.title}".colorize(:green)
+  list
 when 'u'
   users = Gitlab.users
   users.sort_by(&:id).each do |user|
